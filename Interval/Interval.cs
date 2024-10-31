@@ -24,7 +24,7 @@ namespace Fitness
 
                 if (value > 0)
                 { _sequentieNr = value; }
-                else { throw new DomeinException($"LoopInterval - Zet sequentienummer | Foutief sequentienummer: {value}"); }
+                else { throw new DomeinException($"Foutief sequentienummer: {value}"); }
             } 
         }
 
@@ -39,7 +39,7 @@ namespace Fitness
                 }
                 else
 
-                { throw new DomeinException($"LoopInterval - Zet tijdInSeconden | Foutief tijdInSeconden: {value}"); }
+                { throw new DomeinException($"Foutieve tijdInSeconden: {value}"); }
                 }
         }
 
@@ -56,7 +56,7 @@ namespace Fitness
                 }
                 else
                 {
-                    throw new DomeinException($"LoopInterval - Zet snelheid | Foutief snelheid: {value}");
+                    throw new DomeinException($"Foutieve snelheid: {value}");
                 }
 
             }

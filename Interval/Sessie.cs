@@ -43,7 +43,7 @@ namespace Fitness
                 }
                 else
                 {
-                    throw new DomeinException($"LoopTraining - Zet sessieNr | Foutief sessieNr: {value}");
+                    throw new DomeinException($"Foutief sessieNr: {value}");
                 }
             }
         }
@@ -64,7 +64,7 @@ namespace Fitness
                 }
                 else
                 {
-                    throw new DomeinException($"LoopTraining - Zet klantNr | Foutief klantNr: {value}");
+                    throw new DomeinException($"Foutief klantNr: {value}");
                 }
             }
         }
@@ -81,7 +81,7 @@ namespace Fitness
                     _totaleDuur = value;
                 } else
                 {
-                    throw new DomeinException($"LoopTraining - Zet totaleDuur | Foutief totaleDuur: {value}");
+                    throw new DomeinException($"Foutieve totaleDuur: {value}");
                 }
             }
         }
@@ -98,7 +98,7 @@ namespace Fitness
                     _gemiddeldeSnelheid = value;
                 } else
                 {
-                    throw new DomeinException($"LoopTraining - Zet gemiddeldeSnelheid | Foutief gemiddeldeSnelheid: {value}");
+                    throw new DomeinException($"Foutieve gemiddeldeSnelheid: {value}");
                 }
 
             }

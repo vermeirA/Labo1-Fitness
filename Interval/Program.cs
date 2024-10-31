@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fitness.Managers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,8 +10,7 @@ namespace Fitness
 {
     internal class Program
     {
-
-
+        //nog een FitnessManager aanmaken die de input verwerkt
         public static void Main(string[] args)
         {
             DateTime show = DateTime.Now;
@@ -23,12 +23,27 @@ namespace Fitness
             //invoegdata localiseren
             string filePath = "C:\\Users\\Gebruiker\\Desktop\\Graduaat\\SEM3\\Programmeren gevorderd 1\\Labo 1\\Interval\\insertRunning.sql";
 
-            //instantie van sessie
+            //instantie van sessie, processor en manager
             FileProcessor fileProcessor1 = new FileProcessor();
             List<Sessie> sessieList = fileProcessor1.LeesFile(filePath);
-           
-            Console.WriteLine("Welkom in de fitness databank! Wil je zoeken op klant(1) of op datum(2)? : ");
-            int key = int.Parse(Console.ReadLine());
+            FitnessManager fitnessManager = new FitnessManager(sessieList);
+
+            //initial UI checker
+            bool startSearch = false;
+            int key = 0;
+
+            while (!startSearch)
+            {
+                Console.WriteLine("Welkom in de fitness databank! Wil je zoeken op klant(1) of op datum(2)? : ");
+                bool correctInput = int.TryParse(Console.ReadLine(), out key);
+                if (!correctInput || (key != 1 && key != 2))
+                {
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Geen juiste input. Gebruik gehele getallen 1 (op klant) of 2 (op datum).");
+                    Console.ResetColor();
+                } else { startSearch = true; Console.Clear(); }
+            }
 
             if (key == 1) 
             {
@@ -37,103 +52,59 @@ namespace Fitness
                 Console.Clear();
 
                 Console.Write($"Zoeken op klant {klantNr}");
-                Thread.Sleep(50);
-                Console.Write("...");
-                Thread.Sleep(50);
-                Console.WriteLine("...");
-                Thread.Sleep(50);               
+                DisplayLoadingMessage();           
 
                 //dictionary maken en opvullen met alle klantennummers
 
                 Dictionary<int, List<Sessie>> klantDictionary = new Dictionary<int, List<Sessie>>();
 
-                foreach (var sessie in sessieList)
-                {
-                    // bestaat het klantennummer al (enkel voor eerst gelezen lijst)
-                    if (klantDictionary.TryGetValue(sessie.klantNr, out List<Sessie> sessies))
-                    {
-                        // voeg de sessie toe aan de bestaande lijst
-                        sessies.Add(sessie);
-                    }
-                    else
-                    {
-                        // Maak een nieuwe lijst en voeg de sessie toe
-                        klantDictionary[sessie.klantNr] = new List<Sessie> { sessie };
-                    }
-                }
-
-                // Zoek naar het klantNr in de dictionary
-                if (klantDictionary.TryGetValue(klantNr, out List<Sessie> gevondenSessies))
-                {
-                    foreach (var foundSessie in gevondenSessies)
-                    {
-                        Console.WriteLine($"SessieNr: {foundSessie.sessieNr}, DatumTijd: {foundSessie.datumTijd}, " +
-                            $"KlantNr: {foundSessie.klantNr}, Duur: {foundSessie.totaleDuur}, Gem. Snelheid: {foundSessie.gemiddeldeSnelheid}, " +
-                            $"Intervals: {foundSessie._loopIntervallen.Count}");
-
-                        foreach (var interval in foundSessie._loopIntervallen)
-                        {
-                            Console.WriteLine($"    SeqNr: {interval.sequentieNr}, Snelheid: {interval.snelheid}km/h, " +
-                                $"Duur: {interval.tijdInSeconden}s");
-                        }
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"Geen sessie gevonden voor KlantNr: {klantNr}");
-                }
+                List<Sessie> gevondenSessies = fitnessManager.ZoekOpKlant(klantNr);
+                DisplaySessions(gevondenSessies, klantNr.ToString());
             } 
-
-
-
 
             else if (key == 2)
             {
                 Console.WriteLine("Geef de gezochte datum : ");
                 DateTime datum = DateTime.Parse(Console.ReadLine());
+                Console.Clear();
 
                 Console.Write($"Zoeken op {datum.Date}");
-                Thread.Sleep(50);
-                Console.Write("...");
-                Thread.Sleep(50);
-                Console.WriteLine("...");
-                Thread.Sleep(50);
+                DisplayLoadingMessage();
 
-                Dictionary<DateTime, List<Sessie>> datumDictionary = new Dictionary<DateTime, List<Sessie>>();
+                List<Sessie> gevondenSessies = fitnessManager.ZoekOpDatum(datum);
+                DisplaySessions(gevondenSessies, datum.ToShortDateString());
+            }
+        }
 
-                foreach (var sessie in sessieList)
+        private static void DisplayLoadingMessage()
+        {
+            Thread.Sleep(50);
+            Console.Write("...");
+            Thread.Sleep(50);
+            Console.WriteLine("...");
+            Thread.Sleep(50);
+        }
+
+        private static void DisplaySessions(List<Sessie> sessies, string zoekCriteria) 
+        {
+            if (sessies != null && sessies.Count > 0)
+            {
+                foreach (var foundSessie in sessies)
                 {
+                    Console.WriteLine($"SessieNr: {foundSessie.sessieNr}, DatumTijd: {foundSessie.datumTijd}, " +
+                        $"KlantNr: {foundSessie.klantNr}, Duur: {foundSessie.totaleDuur}, Gem. Snelheid: {foundSessie.gemiddeldeSnelheid}, " +
+                        $"Intervals: {foundSessie._loopIntervallen.Count}");
 
-                    DateTime sessieDatum = sessie.datumTijd.Date; // enkel op datum zoeken anders zoekt hij niet correct
-                    if (datumDictionary.TryGetValue(sessieDatum, out List<Sessie> sessies))
+                    foreach (var interval in foundSessie._loopIntervallen)
                     {
-                        sessies.Add(sessie);
-                    }
-                    else
-                    {
-                        datumDictionary[sessieDatum] = new List<Sessie> { sessie };
-                    }
-                }
-
-                if (datumDictionary.TryGetValue(datum, out List<Sessie> gevondenSessies))
-                {
-                    foreach (var foundSessie in gevondenSessies)
-                    {
-                        Console.WriteLine($"SessieNr: {foundSessie.sessieNr}, DatumTijd: {foundSessie.datumTijd}, " +
-                            $"KlantNr: {foundSessie.klantNr}, Duur: {foundSessie.totaleDuur}, Gem. Snelheid: {foundSessie.gemiddeldeSnelheid}, " +
-                            $"Intervals: {foundSessie._loopIntervallen.Count}");
-
-                        foreach (var interval in foundSessie._loopIntervallen)
-                        {
-                            Console.WriteLine($"    SeqNr: {interval.sequentieNr}, Snelheid: {interval.snelheid}km/h, " +
-                                $"Duur: {interval.tijdInSeconden}s");
-                        }
+                        Console.WriteLine($"    SeqNr: {interval.sequentieNr}, Snelheid: {interval.snelheid}km/h, " +
+                            $"Duur: {interval.tijdInSeconden}s");
                     }
                 }
-                else
-                {
-                    Console.WriteLine($"Geen sessie gevonden voor datum: {datum.Date}");
-                }
+            }
+            else
+            {
+                Console.WriteLine($"Geen sessie gevonden voor {zoekCriteria}");
             }
         }
     }
